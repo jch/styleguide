@@ -138,6 +138,10 @@ def test_user_is_valid
 end
 ```
 
+### Avoid dynamically generating tests
+
+Here's an exception to keeping code DRY. Explicit is easier to find because jumping to a line refers to a specific test.
+
 ### Minimize setup and fixtures blocks
 
 Create objects needed for test in the test so it's easy to read and reason about
