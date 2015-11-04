@@ -140,7 +140,30 @@ end
 
 ### Avoid dynamically generating tests
 
-Here's an exception to keeping code DRY. Explicit is easier to find because jumping to a line refers to a specific test.
+Here's an exception to keeping code DRY. Explicit makes it easy to jump to a specific line and be on a specific test.
+
+```ruby
+# bad
+[ :empty, :normal ].each do |type|
+  [ :read, :write ].each do |action|
+    test "handles #{action} to #{type} wikis" do
+    end
+  end
+end
+
+# good
+def test_handles_read_to_empty_wikis
+end
+
+def test_handles_write_to_empty_wikis
+end
+
+def test_handles_read_to_normal_wikis
+end
+
+def test_handles_write_to_normal_wikis
+end
+```
 
 ### Minimize setup and fixtures blocks
 
