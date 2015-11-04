@@ -66,6 +66,10 @@ end
 
 ## Tests
 
+* easy to understand is more important than DRY
+* a test should be understandable without jumping through several files
+* failing test should be easy to locate
+
 ### Use minitest style test methods
 
 When a test fails, it's easy to grep for the original failing method name.
@@ -162,6 +166,24 @@ def test_handles_read_to_normal_wikis
 end
 
 def test_handles_write_to_normal_wikis
+end
+```
+
+### Prefer built in assertions over custom ones
+
+It's tempting to group assertions together into test helper methods. Unless it's a really general helper method, these inevitabily become stale and unused over time.
+
+```ruby
+# bad
+def test_runs_pre_receive_hooks
+  # it's not immediately clear what this helper does
+  assert_run_hooks "pre-receive", [/^[0-9a-f]+ [0-9a-f]+ refs\/heads\/master$/]
+end
+
+# good
+def test_runs_pre_receive_hooks
+  assert_includes @hooks_log, "pre-receive"
+  assert_match /^[0-9a-f]+ [0-9a-f]+ refs\/heads\/master$/, @refs
 end
 ```
 
