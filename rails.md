@@ -78,7 +78,7 @@ context "User" do
 end
 
 # good
-class UserTest < Minitest::TestCase
+class UserTest < Minitest::Test
   def test_cannot_have_more_than_one_address
   end
 end
@@ -92,7 +92,7 @@ test method, and minimizes nesting depth.
 
 ```ruby
 # bad
-class UserTest < Minitest::TestCase
+class UserTest < Minitest::Test
   context "validations" do
     def test_requires_email
     end
@@ -103,7 +103,7 @@ class UserTest < Minitest::TestCase
 end
 
 # good
-class UserTest < Minitest::TestCase
+class UserTest < Minitest::Test
   def test_validate_requires_email
   end
 
