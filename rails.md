@@ -66,10 +66,6 @@ end
 
 ## Tests
 
-* easy to understand is more important than DRY
-* a test should be understandable without jumping through several files
-* failing test should be easy to locate
-
 ### Use minitest style test methods
 
 When a test fails, it's easy to grep for the original failing method name.
@@ -82,11 +78,42 @@ context "User" do
 end
 
 # good
-class UserTest < Minitest::TestCase
+class UserTest < Minitest::Test
   def test_cannot_have_more_than_one_address
   end
 end
 ```
+
+### Clarity over Don't Repeat Yourself (DRY)
+
+A test should be understandable without jumping through several methods and files.
+DRY can be harmful in tests because it obscures the intention of the test.
+
+```ruby
+# bad: Custom test classes instead of vanilla test class
+require "test/test_helpers/model_test"
+class UserTest < ModelTest
+  # bad: custom DSL hides how objects are setup
+  subject User
+
+  def test_validates_email
+    # bad: what is @subject? What is it's login?
+    assert_equal "#{@subject.login}@gmail.com", @subject.email
+  end
+end
+
+# good
+class UserTest < Minitest::Test
+  # reading this method in isolation gives a good idea of what is being tested
+  def test_validates_email
+    user = User.new(login: "jch")
+    
+    # no string interpolation makes expected value obvious
+    assert_equal "jch@gmail.com", @subject.email
+  end
+end
+```
+
 
 ### Avoid nested contexts
 
@@ -96,7 +123,7 @@ test method, and minimizes nesting depth.
 
 ```ruby
 # bad
-class UserTest < Minitest::TestCase
+class UserTest < Minitest::Test
   context "validations" do
     def test_requires_email
     end
@@ -107,7 +134,7 @@ class UserTest < Minitest::TestCase
 end
 
 # good
-class UserTest < Minitest::TestCase
+class UserTest < Minitest::Test
   def test_validate_requires_email
   end
 
