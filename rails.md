@@ -1,5 +1,31 @@
 # Ruby and Rails styleguide
 
+## Ruby
+
+### Do not align by =, => delimiters
+
+These introduce unnecessary diffs and require extra work and diffs to maintain over time
+
+```ruby
+# bad: adding a longer line requires realigning all other lines
+assert_authz :get, @pub_owner_collab_url do |check|
+  check.authorized_users           @owner, collaborator
+  check.unauthorized_users         @rando
+  check.authorized_installations   authorized_installation
+  check.unauthorized_installations unauthorized_installation
+  check.challenges                 :anon
+end
+
+# good
+assert_authz :get, @pub_owner_collab_url do |check|
+  check.authorized_users @owner, collaborator
+  check.unauthorized_users @rando
+  check.authorized_installations authorized_installation
+  check.unauthorized_installations unauthorized_installation
+  check.challenges :anon
+end
+```
+
 ## ActiveRecord
 
 ### Put validations on separate lines
