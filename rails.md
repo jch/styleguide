@@ -1,4 +1,4 @@
-# Ruby and Rails styleguide
+# Ruby on Rails style guide
 
 ## ActiveRecord
 
@@ -173,5 +173,29 @@ end
 def test_404_when_not_admin
   get "/admin"
   assert_response 404
+end
+```
+
+## Lib
+
+### Avoid depending on Rails
+
+Think of lib as your internal open source repository. Anything within it should
+be usable outside of your application.
+
+```ruby
+class Bad
+  attr_accessor :bar
+
+  # bad assumes rails
+  delegate :foo => :bar
+end
+
+# good use stdlib
+require "forwardable"
+class Good
+  extend Forwardable
+
+  def_delegator :bar, :foo
 end
 ```
