@@ -138,6 +138,32 @@ def test_user_is_valid
 end
 ```
 
+### Avoid assert_difference and testing Model.last
+
+Instead of testing that a record was created, test the results for what you care
+about to avoid a brittle test coupled to your implementation.
+
+```ruby
+# bad. This test fails if creating a user generates more than one notification,
+# even if the implementation still works.
+def test_create_user_sends_a_notification_to_an_admin
+  assert_difference "Notification.count" do
+    some_action_that_creates_a_user
+  end
+
+  assert_equal "New user 'pizza' created", Notification.last.message
+end
+
+# good
+def test_create_user_sends_a_notification_to_an_admin
+  result = some_action_that_creates_a_user
+
+  # value objects make testing easier, testing for what we care about, not every
+  # notification
+  assert result.notifications.any? {|n| n.message == "New user 'pizza' created"}
+end
+```
+
 ### Minimize setup and fixtures blocks
 
 Create objects needed for test in the test so it's easy to read and reason about
