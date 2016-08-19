@@ -1,4 +1,4 @@
-# Ruby and Rails styleguide
+# Ruby on Rails style guide
 
 ## Ruby
 
@@ -133,7 +133,7 @@ class UserTest < Minitest::Test
   # reading this method in isolation gives a good idea of what is being tested
   def test_validates_email
     user = User.new(login: "jch")
-    
+
     # no string interpolation makes expected value obvious
     assert_equal "jch@gmail.com", @subject.email
   end
@@ -192,6 +192,32 @@ end
 def test_user_is_valid
   user = User.new(login: "foo", email: "foo@bar.com", password: "foobar")
   assert_predicate user, :valid?
+end
+```
+
+### Avoid assert_difference and testing Model.last
+
+Instead of testing that a record was created, test the results for what you care
+about to avoid a brittle test coupled to your implementation.
+
+```ruby
+# bad. This test fails if creating a user generates more than one notification,
+# even if the implementation still works.
+def test_create_user_sends_a_notification_to_an_admin
+  assert_difference "Notification.count" do
+    some_action_that_creates_a_user
+  end
+
+  assert_equal "New user 'pizza' created", Notification.last.message
+end
+
+# good
+def test_create_user_sends_a_notification_to_an_admin
+  result = some_action_that_creates_a_user
+
+  # value objects make testing easier, testing for what we care about, not every
+  # notification
+  assert result.notifications.any? {|n| n.message == "New user 'pizza' created"}
 end
 ```
 
@@ -275,5 +301,29 @@ end
 def test_404_when_not_admin
   get "/admin"
   assert_response 404
+end
+```
+
+## Lib
+
+### Avoid depending on Rails
+
+Think of lib as your internal open source repository. Anything within it should
+be usable outside of your application.
+
+```ruby
+class Bad
+  attr_accessor :bar
+
+  # bad assumes rails
+  delegate :foo => :bar
+end
+
+# good use stdlib
+require "forwardable"
+class Good
+  extend Forwardable
+
+  def_delegator :bar, :foo
 end
 ```
