@@ -1,5 +1,31 @@
 # Ruby on Rails style guide
 
+## Ruby
+
+### Do not align by =, => delimiters
+
+These introduce unnecessary diffs and require extra work and diffs to maintain over time
+
+```ruby
+# bad: adding a longer line requires realigning all other lines
+assert_authz :get, @pub_owner_collab_url do |check|
+  check.authorized_users           @owner, collaborator
+  check.unauthorized_users         @rando
+  check.authorized_installations   authorized_installation
+  check.unauthorized_installations unauthorized_installation
+  check.challenges                 :anon
+end
+
+# good
+assert_authz :get, @pub_owner_collab_url do |check|
+  check.authorized_users @owner, collaborator
+  check.unauthorized_users @rando
+  check.authorized_installations authorized_installation
+  check.unauthorized_installations unauthorized_installation
+  check.challenges :anon
+end
+```
+
 ## ActiveRecord
 
 ### Put validations on separate lines
@@ -84,6 +110,37 @@ class UserTest < Minitest::Test
 end
 ```
 
+### Clarity over Don't Repeat Yourself (DRY)
+
+A test should be understandable without jumping through several methods and files.
+DRY can be harmful in tests because it obscures the intention of the test.
+
+```ruby
+# bad: Custom test classes instead of vanilla test class
+require "test/test_helpers/model_test"
+class UserTest < ModelTest
+  # bad: custom DSL hides how objects are setup
+  subject User
+
+  def test_validates_email
+    # bad: what is @subject? What is it's login?
+    assert_equal "#{@subject.login}@gmail.com", @subject.email
+  end
+end
+
+# good
+class UserTest < Minitest::Test
+  # reading this method in isolation gives a good idea of what is being tested
+  def test_validates_email
+    user = User.new(login: "jch")
+
+    # no string interpolation makes expected value obvious
+    assert_equal "jch@gmail.com", @subject.email
+  end
+end
+```
+
+
 ### Avoid nested contexts
 
 This is a code smell that your class is doing too much. Group similar tests
@@ -161,6 +218,51 @@ def test_create_user_sends_a_notification_to_an_admin
   # value objects make testing easier, testing for what we care about, not every
   # notification
   assert result.notifications.any? {|n| n.message == "New user 'pizza' created"}
+end
+```
+
+### Avoid dynamically generating tests
+
+Here's an exception to keeping code DRY. Explicit makes it easy to jump to a specific line and be on a specific test.
+
+```ruby
+# bad
+[ :empty, :normal ].each do |type|
+  [ :read, :write ].each do |action|
+    test "handles #{action} to #{type} wikis" do
+    end
+  end
+end
+
+# good
+def test_handles_read_to_empty_wikis
+end
+
+def test_handles_write_to_empty_wikis
+end
+
+def test_handles_read_to_normal_wikis
+end
+
+def test_handles_write_to_normal_wikis
+end
+```
+
+### Prefer built in assertions over custom ones
+
+It's tempting to group assertions together into test helper methods. Unless it's a really general helper method, these inevitabily become stale and unused over time.
+
+```ruby
+# bad
+def test_runs_pre_receive_hooks
+  # it's not immediately clear what this helper does
+  assert_run_hooks "pre-receive", [/^[0-9a-f]+ [0-9a-f]+ refs\/heads\/master$/]
+end
+
+# good
+def test_runs_pre_receive_hooks
+  assert_includes @hooks_log, "pre-receive"
+  assert_match /^[0-9a-f]+ [0-9a-f]+ refs\/heads\/master$/, @refs
 end
 ```
 
