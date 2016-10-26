@@ -304,6 +304,24 @@ def test_404_when_not_admin
 end
 ```
 
+### Test specific model validations
+
+```ruby
+# bad
+def test_validates_login_required
+  @user = User.new
+  refute_predicate @user, :valid?
+end
+
+# good
+def test_validates_login_required
+  @user = User.new
+  @user.valid?
+  
+  assert @user.errors[:login].any? {|e| e =~ /can't be blank/}
+end
+```
+
 ## Lib
 
 ### Avoid depending on Rails
