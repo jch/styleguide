@@ -221,6 +221,33 @@ def test_create_user_sends_a_notification_to_an_admin
 end
 ```
 
+### Use assert_includes and refute_includes for testing arrays
+
+Instead of `assert_equal`, test for the specific elements that should or should not exist in an array. This communicates intent clearly, provides better error messages, and prevents false positive failures when new fixtures are added, or new behavior introduced.
+
+```ruby
+# bad. Adding new events in that method would cause a false failure
+def test_delivery_event
+  User.create(login: 'jch')
+  assert_equal ['User created', 'Email delivered to jch'], AuditLog.events.map(&:message)
+end
+
+# better. Does not rely on ordering of events
+def test_delivery_event
+  User.create(login: 'jch')
+  assert_same ['User created', 'Email delivered to jch'], AuditLog.events.map(&:message)
+end
+
+# best. Tests for specific events
+def test_delivery_event
+  User.create(login: 'jch')
+  
+  messages = AuditLog.events.map(&:message)
+  assert_includes messages, 'User created'
+  assert_includes messages, 'Email delivered to jch'
+end
+```
+
 ### Avoid dynamically generating tests
 
 Here's an exception to keeping code DRY. Explicit makes it easy to jump to a specific line and be on a specific test.
